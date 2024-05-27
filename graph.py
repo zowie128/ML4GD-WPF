@@ -95,14 +95,18 @@ class WPFSpatialGraph:
 
         return sparsity
 
+    def save_graph_as_gml(self, file_path):
+        nx.write_gml(self.G, file_path)
 
 if __name__ == "__main__":
-    data = pd.read_csv("sdwpf_baidukddcup2022_turb_location.CSV")
+    data = pd.read_csv("raw_data/sdwpf_turb_location.csv")
     kernel_size = 2000
 
     G = WPFSpatialGraph(coords=data, kernel_size=kernel_size)
-
     G.visualize()
+
+    #save the graph with kernel to use in later models
+    G.save_graph_as_gml(f"data/spatial_graph_{kernel_size}.gml")
 
     # Plot different sparsities.
     kernel_sizes = [100, 500, 1000, 1500, 2000, 3000, 4000, 5000]
@@ -118,3 +122,4 @@ if __name__ == "__main__":
     )
     plt.grid(True)
     plt.show()
+
