@@ -1,3 +1,9 @@
+import os
+import sys
+
+# Set the PYTHONPATH to the parent directory
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from torch.utils.data import TensorDataset, DataLoader
 import numpy as np
 import networkx as nx
@@ -6,16 +12,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from gmm_code.gmm import GMMGCN
+from gmm_code.gmm import GMMGCNN
 
-import os
-import sys
-
-# Set the PYTHONPATH to the parent directory
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-
-timeseries_data = np.load(file="gmm_code/lab2_NOAA/NOA_109_data.npy")
+file_path = os.path.join(os.path.dirname(__file__), "lab2_NOAA", "NOA_109_data.npy")
+timeseries_data = np.load(file=file_path)
 print(
     f"The dataset contains {timeseries_data.shape[1]} measurements over {timeseries_data.shape[0]} stations."
 )
@@ -140,7 +140,7 @@ def evaluate_epoch_gcnn(model, loader, criterion):
     return total_loss / len(loader)
 
 
-def train_gcn(model, num_epochs, criterion, train_loader, test_loader):
+def train_gcnn(model, num_epochs, criterion, train_loader, test_loader):
     # TODO: Check loss function!
     optimizer = torch.optim.Adam(model.parameters(), lr=0.1, weight_decay=5e-4)
 
@@ -240,7 +240,7 @@ if __name__ == "__main__":
         X_val = _create_missing_dataset(X_val, frac)
         X_test = _create_missing_dataset(X_test, frac)
 
-        A = np.load(file="gmm_code/lab2_NOAA/NOA_109_original_adj.npy")
+        A = np.load(file="lab2_NOAA/NOA_109_original_adj.npy")
 
         k = 10
         G = create_knn_graph(A, k)
@@ -258,13 +258,14 @@ if __name__ == "__main__":
         val_loader = DataLoader(val_dataset, batch_size=1)
         test_loader = DataLoader(test_dataset, batch_size=1)
 
-        model = GMMGCN(
+        model = GMMGCNN(
             obs_size=obs_window,
             pred_size=pred_horizen,
             hid_sizes=[16, 16],
             num_components=5,
             all_features=X_train[0, :, :],
             all_A=A,
+            order=2,
         )
 
-        train_gcn(model, 10, torch.nn.MSELoss(), train_loader, test_loader)
+        train_gcnn(model, 10, torch.nn.MSELoss(), train_loader, test_loader)
