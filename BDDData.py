@@ -32,7 +32,8 @@ class BDD_dataset:
         self.historic_df["chaotic_value"] = (self.historic_df["zero_value"]) | (self.historic_df["missing_value"]) | (self.historic_df["unknown_value"]) | (self.historic_df["abnormal_value"])
         
         if replace:
-            self.historic_df.loc[self.historic_df.chaotic_value, 'Patv'] = np.nan
+            self.historic_df.loc[self.historic_df.chaotic_value, 'Patv'] = 0
+
 
     def angle_mod(self):
         #Get mod of wind direction
@@ -86,6 +87,14 @@ class BDD_dataset:
         else:
             raise NotImplementedError
         
+    def find_complete_window(self): 
+        # Group by timestep and filter out groups where all turbine outputs are positive
+        positive_output_groups = self.historic_df.groupby('timestep').filter(lambda x: (x['Patv'] > 0).all())
+
+        # Extract the unique time steps from the filtered groups
+        time_steps_array = positive_output_groups['timestep'].unique()
+
+        return time_steps_array
 
     def split_df(self, add_features = None):
         #Train 171 days, validation 25 days, test: 49 days (70/10/20 split) - (21/3/6)
@@ -140,3 +149,46 @@ class BDD_dataset:
             #if (middle_index - start_index) == (end_index - middle_index):
             sliding_list.append([start_index,middle_index,end_index])
         self.sliding_indices[str(observation_steps)+","+str(forecast_steps)]=sliding_list
+
+    def split_df_custom(self, time_steps_array, chain_index=0, obs_window=12, forecast_window=12, val_window=3):
+        chain = time_steps_array[chain_index]
+        chain_length = len(chain)
+
+        if chain_length < obs_window + forecast_window + val_window:
+            raise ValueError("Chain length is insufficient for the specified windows.")
+        
+        # Determine the end of each split
+        train_end = obs_window
+        val_start = train_end
+        val_end = val_start + val_window
+        test_start = val_end
+        test_end = chain_length
+
+        # Split the chain into train, validation, and test sets
+        train_data = chain[:train_end]
+        val_data = chain[val_start:val_end]
+        test_data = chain[test_start:test_end]
+
+        # Extract data for each split
+        train_df = self.extract_data(train_data)
+        val_df = self.extract_data(val_data)
+        test_df = self.extract_data(test_data)
+
+        # Convert DataFrames to matrices
+        train_matrix = train_df.pivot(index='TurbID', columns='timestep', values='Patv').to_numpy()
+        val_matrix = val_df.pivot(index='TurbID', columns='timestep', values='Patv').to_numpy()
+        test_matrix = test_df.pivot(index='TurbID', columns='timestep', values='Patv').to_numpy()
+
+        print(train_matrix)
+        return train_matrix, val_matrix, test_matrix
+
+    def extract_data(self, timesteps):
+        data = []
+        for timestep in timesteps:
+            timestep_data = self.historic_df[self.historic_df['timestep'] == timestep]
+            data.append(timestep_data)
+
+        # Concatenate list of DataFrames into a single DataFrame
+        result_df = pd.concat(data)
+        return result_df
+
