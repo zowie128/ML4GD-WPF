@@ -15,6 +15,7 @@ class GCNNLayer(nn.Module):
         out = torch.zeros(features.size(0), self.weights.size(1))
         # compute order hop shift
         for k in range(self.order):
+            # TODO: should this be divided by order?
             out += torch.matrix_power(shift, k).mm(features.mm(self.weights[:, :, k]))
         return out
 
