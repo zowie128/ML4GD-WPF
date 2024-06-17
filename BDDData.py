@@ -120,26 +120,6 @@ class BDD_dataset:
 
         return train, val, test
     
-    def split_df_no_missing_values(self, start, end): #start and end 
-        #Train 171 days, validation 25 days, test: 49 days (70/10/20 split) - (21/3/6)
-        split = [0.7, 0.1, 0.2]
-        train_end = int(start + split[0] * (end - start))
-        val_end = int(train_end + split[1] * (end - start))
-        print(f'start to train_end {train_end - start}')
-        print(f'train_end to val_end {val_end - train_end}')
-        print(f'val_end to end {end - val_end}')
-        # timesteps_per_day = 24 * 6
-        df = self.historic_df[['TurbID','timestep','Patv']]
-        df.loc[:,"TurbID"] -= 1
-        df = df.pivot_table(columns='timestep', index='TurbID', values='Patv')
-        self.matrix = df.to_numpy()
-        print(f"Matrix shape: {self.matrix.shape}")
-        train = self.matrix[:,start: train_end]
-        val = self.matrix[:,train_end + 1: val_end]
-        test = self.matrix[:,val_end + 1: end]
-        
-        return train, val, test
-    
     def get_observation_forecasting_window(self, time_series_len, observation_steps, forecast_steps,stepsize=1,lag=0):
         sliding_list = []
         for i in range(observation_steps,time_series_len-forecast_steps-lag,stepsize):
@@ -151,6 +131,9 @@ class BDD_dataset:
         self.sliding_indices[str(observation_steps)+","+str(forecast_steps)]=sliding_list
 
     def split_df_custom(self, time_steps_array, chain_index=0, obs_window=12, forecast_window=12, val_window=3):
+        if chain_index < 0 or chain_index >= len(time_steps_array):
+            raise IndexError(f"chain_index {chain_index} is out of bounds for array of length {len(time_steps_array)}")
+
         chain = time_steps_array[chain_index]
         chain_length = len(chain)
 
