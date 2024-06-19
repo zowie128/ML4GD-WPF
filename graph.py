@@ -99,7 +99,7 @@ class WPFSpatialGraph:
         nx.write_gml(self.G, file_path)
 
 if __name__ == "__main__":
-    data = pd.read_csv("raw_data/sdwpf_turb_location.csv")
+    data = pd.read_csv("raw_data/BDDdata/sdwpf_baidukddcup2022_turb_location.csv")
     kernel_size = 2000
 
     G = WPFSpatialGraph(coords=data, kernel_size=kernel_size)

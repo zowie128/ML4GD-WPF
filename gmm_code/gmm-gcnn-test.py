@@ -51,6 +51,10 @@ def evaluate_epoch_gcnn(model, loader, criterion):
     for sample in loader:
         x = sample[0].reshape(n_stations, obs_window)
         y = sample[1].reshape(n_stations, -1)
+
+        # print(shift_operator.shape)
+        # print(x.shape)
+
         out = model(shift_operator, x)
         # print(out)
         loss = criterion(out, y)
@@ -190,5 +194,7 @@ if __name__ == "__main__":
             all_A=A,
             order=2,
         )
+
+        # print(X_train.shape)
 
         train_gcnn(model, 10, torch.nn.MSELoss(), train_loader, test_loader)
