@@ -49,7 +49,9 @@ class GMMGCNLayer(nn.Module):
             self.device
         )
         self.mu = nn.Parameter(torch.FloatTensor(self.gmm.means_).to(self.device))
-        self.sigma = torch.FloatTensor(np.log(self.gmm.covariances_)).to(self.device)
+        self.sigma = nn.Parameter(
+            torch.FloatTensor(np.log(self.gmm.covariances_)).to(self.device)
+        )
 
     def _init_gmm(self, features, K):
         # Simply impute the values once for initialization of the gmm.
@@ -76,8 +78,16 @@ class GMMGCNLayer(nn.Module):
         log_prob = self.pi.unsqueeze(1) + log_n
         return torch.softmax(log_prob, dim=0)
 
-    # ! Taken from the paper.
     def forward(self, shift, features):
+        batch_size = features.size(0)
+        tensor_list = []
+        for i in range(batch_size):
+            out = self._forward(shift, features[i])
+            tensor_list.append(out)
+        return torch.stack(tensor_list, dim=0)
+
+    # ! Taken from the paper.
+    def _forward(self, shift, features):
         x_imp = features.repeat(self.num_components, 1, 1)
         x_isnan = torch.isnan(x_imp)
         # x_isnan = torch.is_zero(x_imp)
@@ -147,7 +157,6 @@ class GMMGCN(nn.Module):
         temp = features
         # No relu for the first layer, it is a GMM layer.
         temp = self.layers[0].forward(shift, features)
-        print(temp)
         for layer in self.layers[1:-1]:
             # use relu activation function
             temp = F.relu(layer(shift, temp))

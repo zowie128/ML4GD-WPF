@@ -11,7 +11,13 @@ class GCNLayer(nn.Module):
         nn.init.xavier_uniform_(self.weights)
 
     def forward(self, shift, features):
-        return shift.mm(features.mm(self.weights))
+        batch_size = features.size(0)
+        tensor_list = []
+        for i in range(batch_size):
+            weighted = features[i].matmul(self.weights)
+            out = shift.matmul(weighted)
+            tensor_list.append(out)
+        return torch.stack(tensor_list, dim=0)
 
 
 class GCN(nn.Module):

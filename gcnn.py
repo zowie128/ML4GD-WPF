@@ -30,16 +30,16 @@ class GCNNLayer(nn.Module):
 
 # Inputs must be sized [num_nodes, obs_size] and outputs will be [num_nodes, pred_size]
 class GCNN(nn.Module):
-    def __init__(self, hid_sizes, order):
+    def __init__(self, obs_size, pred_size, hid_sizes, order):
         super(GCNN, self).__init__()
         self.layers = nn.ModuleList()
         # input layer of size obs_size
-        self.layers.append(GCNNLayer(1, hid_sizes[0], order))
+        self.layers.append(GCNNLayer(obs_size, hid_sizes[0], order))
         # num_hid hidden layers of size hid_size
         for i in range(len(hid_sizes) - 1):
             self.layers.append(GCNNLayer(hid_sizes[i], hid_sizes[i + 1], order))
         # fully connected layer to get  output of dim pred_size
-        self.layers.append(nn.Linear(hid_sizes[-1], 1))
+        self.layers.append(nn.Linear(hid_sizes[-1], pred_size))
 
     # Forward sample by sample, no batches are yet supported
     def forward(self, shift, features):

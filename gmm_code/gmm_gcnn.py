@@ -34,6 +34,17 @@ class GMMGCNNLayer(GMMGCNLayer):
         self.order = order
 
     def forward(self, shift, features):
+        batch_size = features.size(0)
+        # output_dim = self.weights.size(1)
+        # shift_powers = [torch.matrix_power(shift, k).float() for k in range(self.order)]
+
+        tensor_list = []
+        for i in range(batch_size):
+            out = self._forward(shift, features[i])
+            tensor_list.append(out)
+        return torch.stack(tensor_list, dim=0)
+
+    def _forward(self, shift, features):
         x_imp = features.repeat(self.num_components, 1, 1)
         x_isnan = torch.isnan(x_imp)
         variances = torch.exp(self.sigma)
