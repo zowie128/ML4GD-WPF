@@ -1,6 +1,5 @@
 raw_data/
-<<<<<<< HEAD
 .vscode/
 __pycache__
-=======
->>>>>>> origin/gtcnn
+pg.npy
+.DS_Store
