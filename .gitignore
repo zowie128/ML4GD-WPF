@@ -1,1 +1,6 @@
 raw_data/
+<<<<<<< HEAD
+.vscode/
+__pycache__
+=======
+>>>>>>> origin/gtcnn

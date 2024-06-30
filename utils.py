@@ -10,7 +10,17 @@ def normalize_adjacency(A):
     S = torch.mm(torch.mm(D_inv_sqrt, A_hat), D_inv_sqrt)
     return S
 
+def build_parametric_product_graph(S_0, S_1, h_00, h_01, h_10, h_11):
+    I_0 = np.eye(S_0.shape[1])
+    I_1 = np.eye(S_1.shape[1])
 
-def create_param_prod_graph(s, S_N, S_T):
-    return torch.tensor(sum([s[i, j] * np.kron(torch.matrix_power(S_T, i), np.matrix_power(S_N, j))
-                             for i in range(2) for j in range(2)]))
+    S_kron_II = torch.from_numpy(np.kron(I_0, I_1))
+    S_kron_SI = torch.from_numpy(np.kron(S_0, I_1))
+    S_kron_IS = torch.from_numpy(np.kron(I_0, S_1))
+    S_kron_SS = torch.from_numpy(np.kron(S_0, S_1)).double()
+
+    S = h_00 * S_kron_II + \
+        h_01 * S_kron_IS + \
+        h_10 * S_kron_SI + \
+        h_11 * S_kron_SS
+    return S
