@@ -5,6 +5,10 @@ import plotly.graph_objects as go
 import seaborn as sns
 import matplotlib.pyplot as plt
 
+import sys
+
+sys.path.append("..")
+
 
 class WPFSpatialGraph:
 
@@ -98,15 +102,16 @@ class WPFSpatialGraph:
     def save_graph_as_gml(self, file_path):
         nx.write_gml(self.G, file_path)
 
+
 if __name__ == "__main__":
-    data = pd.read_csv("raw_data/BDDdata/sdwpf_baidukddcup2022_turb_location.csv")
+    data = pd.read_csv("raw_data/BDDdata/sdwpf_baidukddcup2022_turb_location.CSV")
     kernel_size = 2000
 
     G = WPFSpatialGraph(coords=data, kernel_size=kernel_size)
     G.visualize()
 
-    #save the graph with kernel to use in later models
-    G.save_graph_as_gml(f"data/spatial_graph_{kernel_size}.gml")
+    # save the graph with kernel to use in later models
+    G.save_graph_as_gml(f"graph/data/spatial_graph_{kernel_size}.gml")
 
     # Plot different sparsities.
     kernel_sizes = [100, 500, 1000, 1500, 2000, 3000, 4000, 5000]
@@ -122,4 +127,3 @@ if __name__ == "__main__":
     )
     plt.grid(True)
     plt.show()
-
